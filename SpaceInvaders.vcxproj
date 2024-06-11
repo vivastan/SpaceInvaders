@@ -142,7 +142,7 @@
     <Image Include="alien1.png" />
     <Image Include="alien2.png" />
     <Image Include="alien3.png" />
-    <Image Include="defense.jpeg" />
+    <Image Include="defense.png" />
     <Image Include="laser.png" />
   </ItemGroup>
   <ItemGroup>
@@ -150,6 +150,7 @@
     <ClInclude Include="Bullet.h" />
     <ClInclude Include="Defense.h" />
     <ClInclude Include="DestroyAnimation.h" />
+    <ClInclude Include="Enums.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="MyWindow.h" />

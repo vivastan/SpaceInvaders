@@ -1,13 +1,14 @@
 #include "Player.h"
-#include "Aliens.h" // Include Aliens.h to use Aliens class
-#include "Bullet.h"
 
-Player::Player() : destroyer(), bullet(Color::Green) {
+#define PLAYER_COLOR 198, 199, 191
+
+Player::Player() : destroyer(Color(PLAYER_COLOR)) /*, bullet(Color::Green) */ {
 	lives = 3;
 	points = 0;
 	show = 0;
-	speed = 10;
-	wait = Time();
+	speed = 17;
+	// wait = Time();
+	direction = Direction::none;
 
 	laserTexture.loadFromFile("laser.png");
 	laser.setTexture(laserTexture);
@@ -29,18 +30,20 @@ Player::Player() : destroyer(), bullet(Color::Green) {
 	}
 }
 
+/* ovdje ce ici kako se pomice
 void Player::update(Aliens* a, Defense *d) {
 	if (isShooting()) {
 		bullet.shoot(d, a, NULL);
 	}
-}
+} */
 
-void Player::render(MyWindow* w, Time time) {
+void Player::render(MyWindow* w) {
 	w->draw(textPoints);
-	bullet.render(w);
+	// bullet.render(w);
 	for (int i = 0; i < 3; i++)
 		w->draw(livesLeft[i]);
 
+	/*
 	if (show && wait.asMilliseconds() == 0) {
 		wait = time;
 	}
@@ -49,6 +52,7 @@ void Player::render(MyWindow* w, Time time) {
 		show = 0;
 		wait = Time();
 	}
+	*/
 
 	if (show) {
 		destroyer.render(w);
@@ -58,29 +62,41 @@ void Player::render(MyWindow* w, Time time) {
 	}
 }
 
+int Player::showDestroy() {
+	return show;
+}
+
+void Player::hideDestroy() {
+	show = 0;
+}
+
 int Player::getLives() {
 	return lives;
 }
 
-void Player::move(int direction) {
-	if (direction > 0 && laser.getPosition().x < 780) laser.move(Vector2f(0.2, 0));
-	else if (laser.getPosition().x > 20) laser.move(Vector2f(-0.2, 0));
+void Player::move() {
+	if (direction == Direction::none) return;
+	
+	if (direction == Direction::right && laser.getPosition().x < 780) laser.move(Vector2f(speed, 0));
+	else if (laser.getPosition().x > 20) laser.move(Vector2f(-speed, 0));
 }
 
+/* dodano u Bullet
 void Player::startShooting() {
 	if (isShooting()) return; // ako vec puca nista
 	// inace
 	bullet.show(laser.getPosition());
 	cerr << "pocinje pucati s " << laser.getPosition().x << ", " << laser.getPosition().y << endl;
-}
+} */
 
 Vector2f Player::getLaserPosition() {
 	return laser.getPosition();
 }
 
+/* sve preko Bullet
 int Player::isShooting() {
 	return bullet.isShowing();
-}
+} */
 
 void Player::updateHit(int pts) {
 	if (!pts) return;
@@ -94,19 +110,22 @@ void Player::updateHit(int pts) {
 		return;
 	}
 
-	stopShooting();
+	// stopShooting();
 	points += pts * 10;
 	updatePoints();
 }
 
 int Player::isPlayerHit(Vector2f position) {
-	int x = position.x, y = position.y;
+	float x = position.x, y = position.y;
 
-	if (y == laser.getPosition().y
-		&& (laser.getPosition().x - laser.getLocalBounds().width * 0.1 / 2) <= x
-		&& x <= (laser.getPosition().x + laser.getLocalBounds().width * 0.1 / 2)) {
+	float down = laser.getPosition().y - laser.getLocalBounds().height * 0.1 / 2,
+		up = laser.getPosition().y + laser.getLocalBounds().height * 0.1 / 2,
+		left = laser.getPosition().x - laser.getLocalBounds().width * 0.1 / 2,
+		right = laser.getPosition().x + laser.getLocalBounds().width * 0.1 / 2;
+
+	if (down <= y && y <= up && left <= x && x <= right) {
 		// cerr << x << ", " << y << "\t" << laser.getPosition().x - laser.getLocalBounds().width / 2 << " " << laser.getPosition().x + laser.getLocalBounds().width / 2 << endl;
-		updateHit(-1);
+		// updateHit(-1); -- ovo se radi vec u fji u Bullet pa da ne bude duplo
 		return -1;
 	}
 	return 0;
@@ -123,9 +142,14 @@ void Player::setText(Text* text, int x, int y) {
 	text->setPosition(Vector2f(x, y));
 }
 
+void Player::setDirection(Direction dir) {
+	direction = dir;
+}
+
+/* preko Bullet
 void Player::stopShooting() {
 	bullet.hide();
-}
+} */
 
 float Player::getSpeed() {
 	return speed;

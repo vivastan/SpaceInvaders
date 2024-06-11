@@ -1,12 +1,13 @@
 #include "Aliens.h"
-#include "Player.h"
-#include "Bullet.h"
 
-Aliens::Aliens() : destroyer(), bullet(Color::White) {
-	direction = LEFT;
+#define ALIEN_COLOR 207, 107, 170
+
+Aliens::Aliens() : destroyer(Color(ALIEN_COLOR)) /*, bullet(Color::White) */ {
+	direction = Direction::left;
 	show = 0;
 
-	speed = 3;
+	startY = 50;
+	startSpeed = 2.8;
 
 	alien1Txt.loadFromFile("alien1.png");
 	alien2Txt.loadFromFile("alien2.png");
@@ -14,6 +15,10 @@ Aliens::Aliens() : destroyer(), bullet(Color::White) {
 
 	states.resize(5, vector<int>(11, 0));
 	aliens.resize(5, vector<Sprite>(11));
+
+	nextLevel();
+
+	/*
 	for (int i = 0; i < 5; i++) {
 		for (int j = 0; j < 11; j++) {
 			if (i == 0) {
@@ -32,31 +37,37 @@ Aliens::Aliens() : destroyer(), bullet(Color::White) {
 			// cerr << aliens[i][j].getLocalBounds().width*0.15/2 << ", " << aliens[i][j].getLocalBounds().height * 0.15 / 2 << endl;
 		}
 	}
+	*/
 }
 
 Aliens::~Aliens() {}
+
+int Aliens::showDestroy() {
+	return show;
+}
+
+void Aliens::hideDestroy() {
+	show = 0;
+}
 
 float Aliens::getSpeed() {
 	return speed;
 }
 
-void Aliens::render(MyWindow* w, Time time) {
+void Aliens::render(MyWindow* w) {
 	for (int i = 0; i < 5; i++) {
 		for (int j = 0; j < 11; j++) {
 			w->draw(aliens[i][j]);
 		}
 	}
-	bullet.render(w);
+	// bullet.render(w);
 
 	if (show) {
 		destroyer.render(w);
 	}
 }
 
-float Aliens::getBulletSpeed() { // trenutno nicem ne sluzi
-	return bullet.getSpeed();
-}
-
+/*
 void Aliens::update(Player* p, Defense* d) {
 	if (!isShooting()) {
 		startShooting();
@@ -64,18 +75,18 @@ void Aliens::update(Player* p, Defense* d) {
 	else {
 		bullet.shoot(d, NULL, p);
 	}
-}
+} */
 
 void Aliens::move(Defense* d) {
-	Vector2f offset((direction == LEFT) ? -speed : speed, 0);
+	Vector2f offset((direction == Direction::left) ? -speed : speed, 0);
 
 	if (getLeftPosition() <= 25) {
-		direction = RIGHT;
+		direction = Direction::right;
 		offset.y += 2;
 		speed += 0.1;
 	}
 	else if (getRightPosition() >= 775) {
-		direction = LEFT;
+		direction = Direction::left;
 		offset.y += 2;
 		speed += 0.1;
 	}
@@ -91,14 +102,14 @@ void Aliens::move(Defense* d) {
 				float defXL = d->getDefense(k).getPosition().x - width / 2, defXR = d->getDefense(k).getPosition().x + width / 2;
 				if (defXL <= x && x <= defXR && height <= y) {
 					cerr << "defense " << k << " destroyed by alien " << i << ", " << j << endl;
-					while (d->onHit(k, DOWN));
+					while (d->onHit(k, Object::alien));
 					break;
 				}
 			}
 		}
 	}
 
-	show = 0;
+	// show = 0;
 }
 
 Vector2f Aliens::getAlienPosition() {
@@ -122,48 +133,24 @@ Vector2f Aliens::getAlienPosition() {
 	return aliens[v[t].first][v[t].second].getPosition();
 }
 
-void Aliens::startShooting() {
-	vector<pair<int, int>> v;
-
-	// da samo najnizi mogu pucati + na random
-	for (int j = 0; j < 11; j++) {
-		int i = 4;
-		for (; i >= 0; i--) {
-			if (!states[i][j]) {
-				v.push_back(pair<int, int>(i, j));
-				break;
-			}
-		}
-	}
-
-	if (v.size() == 0) return;
-
-	int t = rand() % v.size();
-
-	// cerr << "alien koji puca: " << v[t].first << ", " << v[t].second << endl;
-
-	bullet.show(aliens[v[t].first][v[t].second].getPosition());
-}
-
 int Aliens::isAlienHit(Vector2f position) {
-	int x = position.x, y = position.y;
+	float x = position.x, y = position.y;
 	for (int i = 0; i < 5; i++) {
 		for (int j = 0; j < 11; j++) {
 			if (states[i][j]) continue;
 
-			if ((int)(aliens[i][j].getPosition().y - aliens[i][j].getLocalBounds().height * 0.15 / 2) == y
-				&& (int)(aliens[i][j].getPosition().x - aliens[i][j].getLocalBounds().width * 0.15 / 2) <= x
-				&& x <= (int)(aliens[i][j].getPosition().x + aliens[i][j].getLocalBounds().width * 0.15 / 2)) {
+			float downY = aliens[i][j].getPosition().y - aliens[i][j].getLocalBounds().height * 0.15 / 2,
+				upY = aliens[i][j].getPosition().y + aliens[i][j].getLocalBounds().height * 0.15 / 2,
+				leftX = aliens[i][j].getPosition().x - aliens[i][j].getLocalBounds().width * 0.15 / 2,
+				rightX = aliens[i][j].getPosition().x + aliens[i][j].getLocalBounds().width * 0.15 / 2;
+
+			if (downY <= y &&  y <= upY && leftX <= x && x <= rightX ) {
 				cerr << i << ", " << j << endl;
 				return onHit(i, j);
 			}
 		}
 	}
 	return 0;
-}
-
-int Aliens::isShooting() {
-	return bullet.isShowing();
 }
 
 float Aliens::getLowestAlienPosition() {
@@ -175,4 +162,74 @@ float Aliens::getLowestAlienPosition() {
 		}
 	}
 	return 0; // do ovog ne bi trebalo doci
+}
+
+int Aliens::onHit(int x, int y) {
+	states[x][y] = 1;
+	destroyer.destroyed(aliens[x][y].getPosition());
+	aliens[x][y].setScale(0, 0);
+	show = 1;
+	if (x == 0) return 3;
+	else if (x < 3) return 2;
+	return 1;
+}
+
+int Aliens::getLeftPosition() {
+	for (int j = 0; j < 11; j++) {
+		for (int i = 0; i < 5; i++) {
+			if (!states[i][j]) {
+				return aliens[i][j].getPosition().x;
+			}
+		}
+	}
+	return 0; // ovo mi ne bi trebalo trebati uopce - napravi provjeru u fji
+}
+
+int Aliens::getRightPosition() {
+	for (int j = 10; j >= 0; j--) {
+		for (int i = 0; i < 5; i++) {
+			if (!states[i][j]) {
+				return aliens[i][j].getPosition().x;
+			}
+		}
+	}
+	return 0; // ovo mi ne bi trebalo trebati uopce - napravi provjeru u fji
+}
+
+void Aliens::nextLevel() {
+	startSpeed += 0.2;
+	speed = startSpeed;
+	startY += 50;
+
+	for (int i = 0; i < 5; i++) {
+		for (int j = 0; j < 11; j++) {
+			if (startSpeed == 3) {
+				if (i == 0) {
+					aliens[i][j].setTexture(alien3Txt);
+				}
+				else if (i < 3) {
+					aliens[i][j].setTexture(alien2Txt);
+				}
+				else {
+					aliens[i][j].setTexture(alien1Txt);
+				}
+			}
+			else {
+				states[i][j] = 0;
+			}
+
+			aliens[i][j].setScale(0.15, 0.15);
+			aliens[i][j].setOrigin(aliens[i][j].getLocalBounds().width / 2, aliens[i][j].getLocalBounds().height / 2);
+			aliens[i][j].setPosition(Vector2f(75 + j * 65, startY + i * 60));
+		}
+	}
+}
+
+int Aliens::allDestroyed() {
+	for (int i = 4; i >= 0; i--) {
+		for (int j = 0; j < 11; j++) {
+			if (!states[i][j]) return 0;
+		}
+	}
+	return 1;
 }

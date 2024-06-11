@@ -9,10 +9,10 @@ using namespace std;
 
 class DestroyAnimation {
 public:
-	DestroyAnimation() {
+	DestroyAnimation(Color color) {
 		destroyAnimation.resize(8);
 		for (int i = 0; i < 8; i++) {
-			destroyAnimation[i].setFillColor(Color::Green);
+			destroyAnimation[i].setFillColor(color);
 			destroyAnimation[i].setSize(Vector2f(1, 12.5));
 			destroyAnimation[i].setOrigin(0.5, 12.5);
 			destroyAnimation[i].setRotation(i * 45);

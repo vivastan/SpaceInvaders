@@ -4,50 +4,48 @@
 #include "SFML\Graphics.hpp"
 #include "MyWindow.h"
 #include "DestroyAnimation.h"
-#include "Bullet.h"
+#include "Enums.h"
 
 #include <iostream>
 
-#define UP 1
-#define DOWN 2 // enum
-
 using namespace std;
 using namespace sf;
-
-class Aliens;
 
 class Player {
 public:
 	Player();
 	~Player() {};
 
-	void update(Aliens* a, Defense *d);
-	void render(MyWindow* w, Time time);
+	// void update(Aliens* a, Defense *d);
+	void render(MyWindow* w);
 	int getLives();
-	void move(int direction);
-	void startShooting();
+	void move();
+	// void startShooting();
 	int isPlayerHit(Vector2f position);
 	float getSpeed();
 	Vector2f getLaserPosition();
+	void updateHit(int pts);
+	void setDirection(Direction dir);
+	int showDestroy();
+	void hideDestroy();
 
 private:
 	int lives;
 	int points;
 	Texture laserTexture;
 	Sprite laser;
-	Bullet bullet;
+	// Bullet bullet;
 	vector<Sprite> livesLeft;
 	Font font;
 	Text textPoints;
 	DestroyAnimation destroyer;
 	int show;
-	Time wait;
 	float speed;
+	Direction direction;
 
 	void updatePoints();
-	void updateHit(int pts);
 	void setText(Text* text, int x, int y);
-	int isShooting();
-	void stopShooting();
+	// int isShooting();
+	// void stopShooting();
 };
 #endif // !PLAYER_H

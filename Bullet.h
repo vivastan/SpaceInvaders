@@ -4,18 +4,14 @@
 #include "SFML/Graphics.hpp"
 #include "MyWindow.h"
 #include "Defense.h"
+#include "Aliens.h"
+#include "Player.h"
 
 using namespace sf;
 
-#define UP 1
-#define DOWN 2 // enum
-
-class Aliens;
-class Player;
-
 class Bullet {
 public:
-	Bullet(Color color);
+	Bullet(Object obj);
 	float getSpeed();
 	void render(MyWindow* w);
 	void hide();
@@ -28,6 +24,6 @@ public:
 private:
 	RectangleShape bullet;
 	float speed;
-	int direction;
+	Object object;
 };
 #endif // !BULLET_H

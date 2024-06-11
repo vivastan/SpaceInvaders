@@ -41,7 +41,7 @@
     <Image Include="laser.png">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="defense.jpeg">
+    <Image Include="defense.png">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
@@ -65,6 +65,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Bullet.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Enums.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
