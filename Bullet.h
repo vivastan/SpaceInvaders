@@ -17,7 +17,6 @@ public:
 	void hide();
 	void show(Vector2f position);
 	int isShowing();
-	Vector2f getPosition();
 	void shoot(Defense* d, Aliens* a, Player* p);
 	void startShooting(Aliens* a, Player* p);
 

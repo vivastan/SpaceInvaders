@@ -8,13 +8,10 @@
 
 // TODO: dodati vrijeme kao u slideovima
 //	- to je to u principu al ne svida mi se da se top za tak puno pomakne + ja bi da to izgl glade
-// TODO: ok je sad za playera kad je pogoden, al ja ne bi da se pauzira i nastavi dalje kako je stalo vec da svi metci se prestanu pucati
-// TODO: popraviti za kad je top blizu ruba
-// TODO: obrambeni objekti se uniste ako ih dotakne alien -- dodala sam to ali nisam istestirala jer prije uniste ga ovako
-// TODO: za obrambene objekte nije mi dobar ovaj u sredini sto se unisti uopce se ne vidi
-//			-- mogu to inicijalizirati i odmah postaviti da se pokrije s pravokutnikom
-// TODO: mytery ship (mozda)
-// TODO: high score ako ce mi falit bodova
+// TODO: obrambeni objekti se uniste ako ih dotakne alien
+//	- mislim da je ok, ali nije istestirano do kraja
+//	- mozda moze biti malo blize ili ovisno ako je vec unistena obrana djelomicno
+// TODO: koliko dugo se prikazuje ova animacija kad je alien unisten ovisi o tome koliko se brzo oni micu
 
 class Game {
 public:
@@ -41,14 +38,22 @@ public:
 	}
 	void processInput() {
 
-		if (play == GameFlow::over || play == GameFlow::playerHit) return;
+		if (play == GameFlow::playerHit) return;
 
-		if (play == GameFlow::menu) {
+		if (play == GameFlow::menu || play == GameFlow::over) {
 			if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
 				float x = Mouse::getPosition(w.getWindow()).x, y = Mouse::getPosition(w.getWindow()).y;
-				if (x >= 0 && x <= 800 && y >= 0 && y <= 800)
+				if (x >= 0 && x <= 800 && y >= 0 && y <= 800) {
 					time = clock.restart();
+					if (play == GameFlow::over) {
+						p.restart();
+						a.restart(3, 125);
+						aBullet.hide();
+						pBullet.hide();
+						d.restart();
+					}
 					play = GameFlow::on;
+				}
 			}
 			return;
 		}
@@ -84,10 +89,9 @@ public:
 		else if (play == GameFlow::on) {
 			if (a.allDestroyed()) {
 				// restart igre
-				a.nextLevel();
 				aBullet.hide();
 				pBullet.hide();
-				d.nextLevel();
+				d.restart();
 
 				// time = Time::Zero; // mislim da ne treba
 				time1 = Time::Zero;
@@ -130,6 +134,8 @@ public:
 
 			if (p.showDestroy()) {
 				play = GameFlow::playerHit;
+				pBullet.hide();
+				aBullet.hide();
 			}
 		}
 		else if (play == GameFlow::playerHit) {

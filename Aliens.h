@@ -22,10 +22,10 @@ public:
 	int isAlienHit(Vector2f position);
 	float getLowestAlienPosition();
 	Vector2f getAlienPosition();
-	void nextLevel();
 	int allDestroyed();
 	int showDestroy();
 	void hideDestroy();
+	void restart(int _startSpeed, int _startY);
 
 private:
 	Texture alien1Txt;

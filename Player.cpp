@@ -3,9 +3,8 @@
 #define PLAYER_COLOR 198, 199, 191
 
 Player::Player() : destroyer(Color(PLAYER_COLOR)) /*, bullet(Color::Green) */ {
-	lives = 3;
-	points = 0;
-	show = 0;
+	livesLeft.resize(3);
+	restart();
 	speed = 17;
 	// wait = Time();
 	direction = Direction::none;
@@ -19,9 +18,7 @@ Player::Player() : destroyer(Color(PLAYER_COLOR)) /*, bullet(Color::Green) */ {
 	font.loadFromFile("arcade.ttf");
 
 	setText(&textPoints, 50, 30);
-	textPoints.setString("POINTS: 0");
 
-	livesLeft.resize(3);
 	for (int i = 0; i < 3; i++) {
 		livesLeft[i].setTexture(laserTexture);
 		livesLeft[i].setScale(0.1, 0.1);
@@ -77,8 +74,8 @@ int Player::getLives() {
 void Player::move() {
 	if (direction == Direction::none) return;
 	
-	if (direction == Direction::right && laser.getPosition().x < 780) laser.move(Vector2f(speed, 0));
-	else if (laser.getPosition().x > 20) laser.move(Vector2f(-speed, 0));
+	if (direction == Direction::right && laser.getPosition().x < 760) laser.move(Vector2f(speed, 0));
+	else if (direction == Direction::left && laser.getPosition().x > 40) laser.move(Vector2f(-speed, 0));
 }
 
 /* dodano u Bullet
@@ -91,6 +88,17 @@ void Player::startShooting() {
 
 Vector2f Player::getLaserPosition() {
 	return laser.getPosition();
+}
+
+void Player::restart() {
+	lives = 3;
+	points = 0;
+	show = 0;
+
+	for (int i = 0; i < 3; i++) {
+		livesLeft[i].setScale(0.1, 0.1);
+	}
+	textPoints.setString("POINTS: 0");
 }
 
 /* sve preko Bullet

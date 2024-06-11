@@ -6,12 +6,6 @@ Bullet::Bullet(Object obj) {
 
 	bullet.setSize(Vector2f(1, 20));
 	bullet.setFillColor((obj == Object::alien) ? Color(ALIEN_COLOR) : Color(PLAYER_COLOR));
-	// bullet.setOrigin(0.5, (direction == DOWN) ? 20 : 0);
-	/*
-	if (direction == UP) {
-		bullet.setPosition(20, 500);
-		cerr << "test bullet position " << bullet.getPosition().x << ", " << bullet.getPosition().y - bullet.getLocalBounds().height/2 << endl;
-	} */
 	hide();
 }
 
@@ -37,10 +31,6 @@ int Bullet::isShowing() {
 	return (bullet.getScale() == Vector2f(0, 0)) ? 0 : 1;
 }
 
-Vector2f Bullet::getPosition() {
-	return bullet.getPosition();
-}
-
 void Bullet::startShooting(Aliens* a, Player* p) {
 	if (isShowing()) return;
 
@@ -56,17 +46,10 @@ void Bullet::shoot(Defense* d, Aliens* a, Player* p) {
 	if (!isShowing() && object == Object::player) return;
 	if (!isShowing() && object == Object::alien) startShooting(a, p);
 
-	bullet.move(Vector2f(0, (object == Object::alien) ? speed : -speed));
-
 	Vector2f pos = bullet.getPosition();
 
-	/*
-	if (direction == UP)
-		cerr << "bullet position = " << pos.x << ", " << pos.y << endl;
-	*/
-
 	int tmp = 0;
-	tmp = (object == Object::alien) ? p->isPlayerHit(pos) : a->isAlienHit(pos);
+	tmp = (object == Object::alien) ? p->isPlayerHit(pos) : a->isAlienHit(pos); // ovisno tko zove fju provjerava je li pogoden protivnik
 
 	if (d->isHit(pos, object) // ako je pogodena obrana, prestani pucati
 		|| tmp) {// ili ako je pogoden igrac (ako alien puca) ili ako je pogoden alien (ako igrac puca)
@@ -74,5 +57,5 @@ void Bullet::shoot(Defense* d, Aliens* a, Player* p) {
 		p->updateHit(tmp);
 	}
 
-	// return tmp;
+	bullet.move(Vector2f(0, (object == Object::alien) ? speed : -speed));
 }

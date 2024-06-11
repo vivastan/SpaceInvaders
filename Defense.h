@@ -22,7 +22,7 @@ public:
 			defense[i].setScale(Vector2f(0.2f, 0.2f));
 		}
 
-		destroyed.resize(4, vector<int>(12, 0)); // 0 ako pravokutnik nije postavljen, 1 ako je
+		destroyed.resize(4, vector<int>(12, 0)); // 0 ako pravokutnik nije postavljen, 1 ako je - ja nez jel ovo uopce koristim ?
 
 		float width = defense[0].getLocalBounds().width * 0.2, height = defense[0].getLocalBounds().height * 0.2;
 		defenseDestroyed.resize(4, vector<RectangleShape>(12)); // za 4 obrambena objekta svaki se unistava s 12 metaka
@@ -32,7 +32,13 @@ public:
 				defenseDestroyed[i][j].setSize(Vector2f(width/3, height/4));
 				defenseDestroyed[i][j].setFillColor(Color::Black);
 				defenseDestroyed[i][j].setPosition(Vector2f(100 - width / 2 + (j%3) * width/3 + i*200, 600 - height/2 + j/3 * height/4));
-				defenseDestroyed[i][j].setScale(0, 0);
+				if (j == 10) {
+					defenseDestroyed[i][j].setScale(1, 1);
+					destroyed[i][j] = 1;
+				}
+				else {
+					defenseDestroyed[i][j].setScale(0, 0);
+				}
 
 				/*
 				if (i == 0) {
@@ -82,32 +88,22 @@ public:
 		return 0;
 	}
 
-	/* ne koristim -- sto znaci da mi ne treba enum onaj gore */
-	int onHit(int i, Object obj) { // 1 ako je pogodena, 0 ako je cijele nema vec
-		if (obj == Object::player) {
-			for (int j = 11; j >= 0; j--) {// za playera ide odozdola
-				if (defenseDestroyed[i][j].getScale() == Vector2f(0, 0)) {
+	void onCollision(Vector2f pos) {
+		float x = pos.x, y = pos.y;
+		float width = defense[0].getLocalBounds().width * 0.2, height = defense[0].getPosition().y - defense[0].getLocalBounds().height * 0.2 / 2;
+		for (int i = 0; i < 4; i++) {
+			float left = defense[i].getPosition().x - width / 2, right = defense[i].getPosition().x + width / 2;
+			if (left <= x && x <= right && height <= y) {
+				for (int j = 0; j < 12; j++) {
 					defenseDestroyed[i][j].setScale(1, 1);
-					return 1;
 				}
+				return;
 			}
 		}
-		else {
-			for (int j = 0; j < 12; j++) {// za playera ide odozdola
-				if (defenseDestroyed[i][j].getScale() == Vector2f(0, 0)) {
-					defenseDestroyed[i][j].setScale(1, 1);
-					return 1;
-				}
-			}
-		}
-		return 0;
+		return;
 	}
 
-	Sprite& getDefense(int i) {
-		return defense[i];
-	}
-
-	void nextLevel() { // ne koristi se jos ali to je za restart
+	void restart() {
 		for (int i = 0; i < 4; i++) {
 			for (int j = 0; j < 12; j++) {
 				destroyed[i][j] = 0;
@@ -123,7 +119,7 @@ private:
 	vector<vector<RectangleShape>> defenseDestroyed;
 
 	void onDestroy(int i, int j) {
-		destroyed[i][j] = 1;
+		destroyed[i][j] = 1; // ovo mi realno ne treba
 		defenseDestroyed[i][j].setScale(1, 1);
 	}
 };

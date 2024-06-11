@@ -20,7 +20,6 @@ public:
 	void render(MyWindow* w);
 	int getLives();
 	void move();
-	// void startShooting();
 	int isPlayerHit(Vector2f position);
 	float getSpeed();
 	Vector2f getLaserPosition();
@@ -28,13 +27,13 @@ public:
 	void setDirection(Direction dir);
 	int showDestroy();
 	void hideDestroy();
+	void restart();
 
 private:
 	int lives;
 	int points;
 	Texture laserTexture;
 	Sprite laser;
-	// Bullet bullet;
 	vector<Sprite> livesLeft;
 	Font font;
 	Text textPoints;
@@ -45,7 +44,5 @@ private:
 
 	void updatePoints();
 	void setText(Text* text, int x, int y);
-	// int isShooting();
-	// void stopShooting();
 };
 #endif // !PLAYER_H

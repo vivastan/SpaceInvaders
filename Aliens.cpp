@@ -6,9 +6,6 @@ Aliens::Aliens() : destroyer(Color(ALIEN_COLOR)) /*, bullet(Color::White) */ {
 	direction = Direction::left;
 	show = 0;
 
-	startY = 50;
-	startSpeed = 2.8;
-
 	alien1Txt.loadFromFile("alien1.png");
 	alien2Txt.loadFromFile("alien2.png");
 	alien3Txt.loadFromFile("alien3.png");
@@ -16,7 +13,7 @@ Aliens::Aliens() : destroyer(Color(ALIEN_COLOR)) /*, bullet(Color::White) */ {
 	states.resize(5, vector<int>(11, 0));
 	aliens.resize(5, vector<Sprite>(11));
 
-	nextLevel();
+	restart(3, 125);
 
 	/*
 	for (int i = 0; i < 5; i++) {
@@ -96,16 +93,7 @@ void Aliens::move(Defense* d) {
 			aliens[i][j].move(offset);
 			if (states[i][j]) continue;
 
-			float x = aliens[i][j].getPosition().x, y = aliens[i][j].getPosition().y;
-			float width = d->getDefense(0).getLocalBounds().width * 0.2, height = d->getDefense(0).getPosition().y - d->getDefense(0).getLocalBounds().height * 0.2;
-			for (int k = 0; k < 4; k++) {
-				float defXL = d->getDefense(k).getPosition().x - width / 2, defXR = d->getDefense(k).getPosition().x + width / 2;
-				if (defXL <= x && x <= defXR && height <= y) {
-					cerr << "defense " << k << " destroyed by alien " << i << ", " << j << endl;
-					while (d->onHit(k, Object::alien));
-					break;
-				}
-			}
+			d->onCollision(aliens[i][j].getPosition());
 		}
 	}
 
@@ -182,7 +170,7 @@ int Aliens::getLeftPosition() {
 			}
 		}
 	}
-	return 0; // ovo mi ne bi trebalo trebati uopce - napravi provjeru u fji
+	return -1; // ovo mi ne bi trebalo trebati uopce - napravi provjeru u fji
 }
 
 int Aliens::getRightPosition() {
@@ -193,13 +181,13 @@ int Aliens::getRightPosition() {
 			}
 		}
 	}
-	return 0; // ovo mi ne bi trebalo trebati uopce - napravi provjeru u fji
+	return 801; // ovo mi ne bi trebalo trebati uopce - napravi provjeru u fji
 }
 
-void Aliens::nextLevel() {
-	startSpeed += 0.2;
+void Aliens::restart(int _startSpeed, int _startY) {
+	startSpeed = _startSpeed;
+	startY = _startY;
 	speed = startSpeed;
-	startY += 50;
 
 	for (int i = 0; i < 5; i++) {
 		for (int j = 0; j < 11; j++) {
@@ -214,9 +202,8 @@ void Aliens::nextLevel() {
 					aliens[i][j].setTexture(alien1Txt);
 				}
 			}
-			else {
-				states[i][j] = 0;
-			}
+
+			states[i][j] = 0;
 
 			aliens[i][j].setScale(0.15, 0.15);
 			aliens[i][j].setOrigin(aliens[i][j].getLocalBounds().width / 2, aliens[i][j].getLocalBounds().height / 2);
@@ -231,5 +218,6 @@ int Aliens::allDestroyed() {
 			if (!states[i][j]) return 0;
 		}
 	}
+	restart(startSpeed + 0.2, startY + 50);
 	return 1;
 }
