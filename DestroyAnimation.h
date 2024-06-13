@@ -9,34 +9,17 @@ using namespace std;
 
 class DestroyAnimation {
 public:
-	DestroyAnimation(Color color) {
-		destroyAnimation.resize(8);
-		for (int i = 0; i < 8; i++) {
-			destroyAnimation[i].setFillColor(color);
-			destroyAnimation[i].setSize(Vector2f(1, 12.5));
-			destroyAnimation[i].setOrigin(0.5, 12.5);
-			destroyAnimation[i].setRotation(i * 45);
-		}
+	DestroyAnimation(Color color);
+	~DestroyAnimation();
 
-		destroyCircle.setRadius(7.5);
-		destroyCircle.setOrigin(7.5, 7.5);
-		destroyCircle.setFillColor(Color::Black);
-	}
-
-	void destroyed(Vector2f position) {
-		for (int i = 0; i < 8; i++)
-			destroyAnimation[i].setPosition(position);
-		destroyCircle.setPosition(position);
-	}
-
-	void render(MyWindow *w) {
-		for (int i = 0; i < 8; i++)
-			w->draw(destroyAnimation[i]);
-		w->draw(destroyCircle);
-	}
+	void destroyed(Vector2f position);
+	void render(MyWindow* w);
+	int isShowing();
+	void hide();
 
 private:
 	vector<RectangleShape> destroyAnimation;
 	CircleShape destroyCircle;
+	int show;
 };
 #endif // !DESTROY_ANIMATION_H

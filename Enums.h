@@ -23,4 +23,4 @@ enum class Object {
 	player
 };
 
-#endif // ENUMS_H
+#endif // !ENUMS_H

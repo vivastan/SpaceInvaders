@@ -6,6 +6,7 @@
 #include "Defense.h"
 #include "Aliens.h"
 #include "Player.h"
+#include "Enums.h"
 
 using namespace sf;
 

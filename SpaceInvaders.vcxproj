@@ -135,6 +135,9 @@
   <ItemGroup>
     <ClCompile Include="Aliens.cpp" />
     <ClCompile Include="Bullet.cpp" />
+    <ClCompile Include="Defense.cpp" />
+    <ClCompile Include="DestroyAnimation.cpp" />
+    <ClCompile Include="Game.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Player.cpp" />
   </ItemGroup>

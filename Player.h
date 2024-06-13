@@ -6,8 +6,6 @@
 #include "DestroyAnimation.h"
 #include "Enums.h"
 
-#include <iostream>
-
 using namespace std;
 using namespace sf;
 
@@ -16,10 +14,10 @@ public:
 	Player();
 	~Player() {};
 
-	// void update(Aliens* a, Defense *d);
 	void render(MyWindow* w);
 	int getLives();
-	void move();
+	int getPoints();
+	void move(float distance);
 	int isPlayerHit(Vector2f position);
 	float getSpeed();
 	Vector2f getLaserPosition();
@@ -35,14 +33,11 @@ private:
 	Texture laserTexture;
 	Sprite laser;
 	vector<Sprite> livesLeft;
-	Font font;
-	Text textPoints;
 	DestroyAnimation destroyer;
 	int show;
 	float speed;
 	Direction direction;
 
-	void updatePoints();
-	void setText(Text* text, int x, int y);
+	void initializeComponent(Sprite &s, Vector2f pos);
 };
 #endif // !PLAYER_H

@@ -1,51 +1,18 @@
 #include "Aliens.h"
 
-#define ALIEN_COLOR 207, 107, 170
-
-Aliens::Aliens() : destroyer(Color(ALIEN_COLOR)) /*, bullet(Color::White) */ {
+Aliens::Aliens() : destroyer(Color(ALIEN_COLOR)) {
 	direction = Direction::left;
-	show = 0;
 
 	alien1Txt.loadFromFile("alien1.png");
 	alien2Txt.loadFromFile("alien2.png");
 	alien3Txt.loadFromFile("alien3.png");
 
-	states.resize(5, vector<int>(11, 0));
 	aliens.resize(5, vector<Sprite>(11));
 
 	restart(3, 125);
-
-	/*
-	for (int i = 0; i < 5; i++) {
-		for (int j = 0; j < 11; j++) {
-			if (i == 0) {
-				aliens[i][j].setTexture(alien3Txt);
-			}
-			else if (i < 3) {
-				aliens[i][j].setTexture(alien2Txt);
-			}
-			else {
-				aliens[i][j].setTexture(alien1Txt);
-			}
-			aliens[i][j].setScale(Vector2f(0.15, 0.15));
-			aliens[i][j].setOrigin(aliens[i][j].getLocalBounds().width / 2, aliens[i][j].getLocalBounds().height / 2);
-			aliens[i][j].setPosition(Vector2f(75 + j * 65, 100 + i * 60));
-			// cerr << aliens[i][j].getPosition().x << ", " << aliens[i][j].getPosition().y << endl;
-			// cerr << aliens[i][j].getLocalBounds().width*0.15/2 << ", " << aliens[i][j].getLocalBounds().height * 0.15 / 2 << endl;
-		}
-	}
-	*/
 }
 
 Aliens::~Aliens() {}
-
-int Aliens::showDestroy() {
-	return show;
-}
-
-void Aliens::hideDestroy() {
-	show = 0;
-}
 
 float Aliens::getSpeed() {
 	return speed;
@@ -57,57 +24,74 @@ void Aliens::render(MyWindow* w) {
 			w->draw(aliens[i][j]);
 		}
 	}
-	// bullet.render(w);
 
-	if (show) {
+	if (destroyer.isShowing()) { /* ako se prikazuje animacija unistenja, nacrtaj i nju */
 		destroyer.render(w);
 	}
 }
 
-/*
-void Aliens::update(Player* p, Defense* d) {
-	if (!isShooting()) {
-		startShooting();
-	}
-	else {
-		bullet.shoot(d, NULL, p);
-	}
-} */
-
 void Aliens::move(Defense* d) {
-	Vector2f offset((direction == Direction::left) ? -speed : speed, 0);
+	Vector2f offset((direction == Direction::left) ? -speed : speed, 0); /* pomak ovisno o smjeru */
 
-	if (getLeftPosition() <= 25) {
-		direction = Direction::right;
-		offset.y += 2;
-		speed += 0.1;
+	if (getLeftPosition() <= 25) { /* ako je najlijeviji vanzemaljac dosao do najlijevije tocke */
+		direction = Direction::right; /* promijeni smjer */
+		offset.y += 2; /* pomakni prema dolje */
+		speed += 0.1f; /* povecaj brzinu */
 	}
-	else if (getRightPosition() >= 775) {
-		direction = Direction::left;
-		offset.y += 2;
-		speed += 0.1;
+	else if (getRightPosition() >= 775) { /* ako je najdesniji vanzemaljac dosao do najdesnije tocke */
+		direction = Direction::left; /* promijeni smjer */
+		offset.y += 2; /* pomakni prema dolje */
+		speed += 0.1f; /* povecaj brzinu */
 	}
 
 	for (int i = 0; i < 5; i++) {
 		for (int j = 0; j < 11; j++) {
-			aliens[i][j].move(offset);
-			if (states[i][j]) continue;
+			aliens[i][j].move(offset); /* pomakni */
 
-			d->onCollision(aliens[i][j].getPosition());
+			if (!isHit(i, j)) /* ako nije pogoden, provjera je li dotaknuo neki obrambeni objekt */
+				d->onCollision(aliens[i][j].getPosition());
 		}
 	}
+}
 
-	// show = 0;
+/* provjerava je li vanzemaljac pogoden */
+int Aliens::isAlienHit(Vector2f position) {
+	float x = position.x, y = position.y,
+		width = aliens[0][0].getLocalBounds().width * 0.15 / 2, height = aliens[0][0].getLocalBounds().height * 0.15 / 2;
+	for (int i = 4; i >= 0; i--) {
+		for (int j = 0; j < 11; j++) {
+			if (isHit(i, j)) continue; /* ako je vec ranije pogoden, preskace se */
+
+			float posx = aliens[i][j].getPosition().x, posy = aliens[i][j].getPosition().y;
+			if (posx - width <= x && x <= posx + width &&
+				((posy - height <= y && y <= posy + height) || (posy - height <= y + 20 && y + 20 <= posy + height))) {
+				return onHit(i, j);
+			}
+		}
+	}
+	return 0;
+}
+
+/* vraca poziciju najnizeg nepogodenog vanzemaljca - za provjeru je li dotakao dno ekrana */
+float Aliens::getLowestAlienPosition() {
+	for (int i = 4; i >= 0; i--) {
+		for (int j = 0; j < 11; j++) {
+			if (!isHit(i, j)) {
+				return aliens[i][j].getPosition().y;;
+			}
+		}
+	}
+	return -1; /* do ovog ne bi trebalo uopce doci */
 }
 
 Vector2f Aliens::getAlienPosition() {
 	vector<pair<int, int>> v;
 
-	// da samo najnizi mogu pucati + na random
+	/* trazi najnize vanzemaljce za svaki stupac */
 	for (int j = 0; j < 11; j++) {
 		int i = 4;
 		for (; i >= 0; i--) {
-			if (!states[i][j]) {
+			if (!isHit(i, j)) {
 				v.push_back(pair<int, int>(i, j));
 				break;
 			}
@@ -118,72 +102,33 @@ Vector2f Aliens::getAlienPosition() {
 
 	int t = rand() % v.size();
 
+	/* vrati poziciju nekog najnizeg vanzemaljca (na random) */
 	return aliens[v[t].first][v[t].second].getPosition();
 }
 
-int Aliens::isAlienHit(Vector2f position) {
-	float x = position.x, y = position.y;
-	for (int i = 0; i < 5; i++) {
-		for (int j = 0; j < 11; j++) {
-			if (states[i][j]) continue;
-
-			float downY = aliens[i][j].getPosition().y - aliens[i][j].getLocalBounds().height * 0.15 / 2,
-				upY = aliens[i][j].getPosition().y + aliens[i][j].getLocalBounds().height * 0.15 / 2,
-				leftX = aliens[i][j].getPosition().x - aliens[i][j].getLocalBounds().width * 0.15 / 2,
-				rightX = aliens[i][j].getPosition().x + aliens[i][j].getLocalBounds().width * 0.15 / 2;
-
-			if (downY <= y &&  y <= upY && leftX <= x && x <= rightX ) {
-				cerr << i << ", " << j << endl;
-				return onHit(i, j);
-			}
-		}
-	}
-	return 0;
-}
-
-float Aliens::getLowestAlienPosition() {
+/* vraca 1 ako su svi vanzemaljci unisteni, 0 inace */
+int Aliens::allDestroyed() {
 	for (int i = 4; i >= 0; i--) {
 		for (int j = 0; j < 11; j++) {
-			if (!states[i][j]) {
-				return aliens[i][j].getPosition().y;;
-			}
+			if (!isHit(i, j)) return 0;
 		}
 	}
-	return 0; // do ovog ne bi trebalo doci
-}
-
-int Aliens::onHit(int x, int y) {
-	states[x][y] = 1;
-	destroyer.destroyed(aliens[x][y].getPosition());
-	aliens[x][y].setScale(0, 0);
-	show = 1;
-	if (x == 0) return 3;
-	else if (x < 3) return 2;
+	/* ako su svi unisteni, odmah pozovi restart da se generiraju novi, ali s vecom pocetnom brzinom i nizom pocetnom pozicijom */
+	restart(startSpeed + 0.2, startY + 50);
 	return 1;
 }
 
-int Aliens::getLeftPosition() {
-	for (int j = 0; j < 11; j++) {
-		for (int i = 0; i < 5; i++) {
-			if (!states[i][j]) {
-				return aliens[i][j].getPosition().x;
-			}
-		}
-	}
-	return -1; // ovo mi ne bi trebalo trebati uopce - napravi provjeru u fji
+/* pokazuje li se animacija unistenja */
+int Aliens::isDestroyShowing() {
+	return destroyer.isShowing();
 }
 
-int Aliens::getRightPosition() {
-	for (int j = 10; j >= 0; j--) {
-		for (int i = 0; i < 5; i++) {
-			if (!states[i][j]) {
-				return aliens[i][j].getPosition().x;
-			}
-		}
-	}
-	return 801; // ovo mi ne bi trebalo trebati uopce - napravi provjeru u fji
+/* sakrij animaciju unistenja */
+void Aliens::hideDestroy() {
+	destroyer.hide();
 }
 
+/* (re)start igre */
 void Aliens::restart(int _startSpeed, int _startY) {
 	startSpeed = _startSpeed;
 	startY = _startY;
@@ -203,21 +148,49 @@ void Aliens::restart(int _startSpeed, int _startY) {
 				}
 			}
 
-			states[i][j] = 0;
-
 			aliens[i][j].setScale(0.15, 0.15);
 			aliens[i][j].setOrigin(aliens[i][j].getLocalBounds().width / 2, aliens[i][j].getLocalBounds().height / 2);
 			aliens[i][j].setPosition(Vector2f(75 + j * 65, startY + i * 60));
 		}
 	}
+	destroyer.hide();
 }
 
-int Aliens::allDestroyed() {
-	for (int i = 4; i >= 0; i--) {
-		for (int j = 0; j < 11; j++) {
-			if (!states[i][j]) return 0;
+int Aliens::isHit(int x, int y) {
+	return (aliens[x][y].getScale() == Vector2f(0, 0)) ? 1 : 0;
+}
+
+/* kad je vanzemaljac pogoden, prikazuje se animacija unistavanja + vanzemaljac se vise ne prikazuje */
+/* vraca 1 / 2 / 3 ovisno u kojem redu je (koliko vrijedi) pogodeni vanzemaljac */
+int Aliens::onHit(int x, int y) {
+	destroyer.destroyed(aliens[x][y].getPosition());
+	aliens[x][y].setScale(0, 0);
+
+	if (x == 0) return 3;
+	else if (x < 3) return 2;
+	return 1;
+}
+
+/* vraca najlijeviju poziciju nepogodenih vanzemaljaca */
+int Aliens::getLeftPosition() {
+	for (int j = 0; j < 11; j++) {
+		for (int i = 0; i < 5; i++) {
+			if (!isHit(i, j)) {
+				return aliens[i][j].getPosition().x;
+			}
 		}
 	}
-	restart(startSpeed + 0.2, startY + 50);
-	return 1;
+	return -1; /* do ovog ne bi trebalo doci uopce */
+}
+
+/* vraca najdesniju poziciju nepogodenih vanzemaljaca */
+int Aliens::getRightPosition() {
+	for (int j = 10; j >= 0; j--) {
+		for (int i = 0; i < 5; i++) {
+			if (!isHit(i, j)) {
+				return aliens[i][j].getPosition().x;
+			}
+		}
+	}
+	return 801; /* do ovog ne bi trebalo doci uopce */
 }
